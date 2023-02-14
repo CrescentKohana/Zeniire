@@ -1,6 +1,6 @@
 # IDE, editors
-/.idea
-/.Zeniire.iml
+/.idea/
+/Zeniire.iml
 
 # data
 /.env
