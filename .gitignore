@@ -1,0 +1,10 @@
+# IDE, editors
+/.idea
+/.Zeniire.iml
+
+# data
+/.env
+
+# testing
+test.http
+coverage.out
