@@ -1,0 +1,57 @@
+syntax = 'proto3';
+
+package zeniire;
+
+option go_package="gen/go/zeniire";
+
+import "google/protobuf/timestamp.proto";
+
+service Records {
+  rpc CreateRecord(CreateRecordReq) returns (CreateRecordResp);
+  rpc ReturnRecord(ReadRecordReq) returns (ReadRecordResp);
+  rpc ReturnRecords(ReadRecordsReq) returns (ReadRecordsResp);
+}
+
+// Message representing a Record
+message Record {
+  // ID of the Record
+  string uuid = 1;
+  // Amount of currency at the time of 'datetime'
+  int64 amount = 2;
+  // The point in time when the Record was stored
+  google.protobuf.Timestamp datetime = 3;
+}
+
+// Request to create a Record
+message CreateRecordReq {
+  // Amount of currency at the time of the Record
+  int64 amount = 1;
+  // The point in time when the Record will be stored
+  google.protobuf.Timestamp datetime = 2;
+}
+
+// Request to create a Record
+message CreateRecordResp {
+  Record record = 1;
+}
+
+// Request to read a Record
+message ReadRecordReq {
+  string record_uuid = 1;
+}
+
+// Response to return one of the Records given the ID
+message ReadRecordResp {
+  Record record = 1;
+}
+
+// Request to list the collection of Records for a given timerange
+message ReadRecordsReq {
+  google.protobuf.Timestamp startDatetime = 1;
+  google.protobuf.Timestamp endDatetime = 2;
+}
+
+// Response to list the collection of Records for a given timerange
+message ReadRecordsResp {
+  repeated Record records = 1;
+}
