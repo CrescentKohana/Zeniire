@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/CrescentKohana/Zeniire/internal/config"
 	grpcAPI "github.com/CrescentKohana/Zeniire/pkg/api/grpc"
+	"github.com/CrescentKohana/Zeniire/pkg/utility"
 	pb "github.com/CrescentKohana/Zeniire/proto/gen/go/zeniire"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -17,6 +18,11 @@ import (
 type ReturnRecordsForm struct {
 	StartDatetime string
 	EndDatetime   string
+}
+
+type NewRecordForm struct {
+	Amount   int64
+	Datetime string
 }
 
 // resultToJSON returns the given struct as JSON format for HTTP responses.
@@ -71,20 +77,30 @@ func getRecords(w http.ResponseWriter, r *http.Request) {
 }
 
 func createRecord(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	recordData, ok := ctx.Value("record").(*pb.Record)
-	if !ok {
+	formData := &NewRecordForm{}
+	if err := json.NewDecoder(r.Body).Decode(formData); err != nil {
 		http.Error(w, http.StatusText(422), 422)
 		return
 	}
 
-	record, err := grpcAPI.CreateRecord(recordData.Amount, recordData.Datetime)
-	if err != nil {
-		http.Error(w, http.StatusText(400), 400)
+	if formData.Amount < 0 {
+		http.Error(w, "negative amounts not allowed", 400)
 		return
 	}
 
-	w.Write([]byte(fmt.Sprintf("created: %s", record.Datetime)))
+	parsedDatetime := utility.StringToTimestamp(formData.Datetime)
+	if parsedDatetime == nil {
+		http.Error(w, "invalid timestamp", 400)
+		return
+	}
+
+	record, err := grpcAPI.CreateRecord(formData.Amount, parsedDatetime)
+	if err != nil {
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+
+	resultToJSON(w, record)
 }
 
 // InitRESTClient initializes the REST HTTP client.
