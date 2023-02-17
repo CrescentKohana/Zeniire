@@ -15,8 +15,10 @@ type OptionsModel struct {
 
 // GRPCOptions is the model for gRPC configuration.
 type GRPCOptions struct {
-	Host string
-	Port string
+	Host      string
+	Port      string
+	TLS       bool
+	CertsPath string
 }
 
 // Options stores the global configuration for the application.
@@ -32,8 +34,10 @@ func LoadEnv() {
 	Options = &OptionsModel{
 		RESTAddr: rESTAddr(),
 		GRPC: GRPCOptions{
-			Host: gRPCHost(),
-			Port: gRPCPort(),
+			Host:      gRPCHost(),
+			Port:      gRPCPort(),
+			TLS:       gRPCTLS(),
+			CertsPath: certsPath(),
 		},
 		DB: DBOptions{
 			Migrations: dbMigrationsEnabled(),
@@ -58,6 +62,16 @@ func gRPCPort() string {
 		return "50051"
 	}
 	return value
+}
+
+// gRPCTLS checks if TLS is enabled through the env.
+func gRPCTLS() bool {
+	return os.Getenv("ZNRE_GRPC_TLS") == "true"
+}
+
+// certsPath loads and returns the path for the certificates
+func certsPath() string {
+	return os.Getenv("ZNRE_CERTS_PATH")
 }
 
 // rESTAddr loads and parses both the REST host and port envs.
