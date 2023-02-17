@@ -25,13 +25,15 @@ func ReturnRecord(id string) (*pb.Record, error) {
 	return r.GetRecord(), err
 }
 
-func ReturnRecords(startDatetime string, endDatetime string) ([]*pb.Record, error) {
+func ReturnRecords(startDatetime string, endDatetime string, limit int64, offset int64) ([]*pb.Record, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
 	r, err := client.ReturnRecords(ctx, &pb.ReadRecordsReq{
 		StartDatetime: utility.StringToTimestamp(startDatetime),
 		EndDatetime:   utility.StringToTimestamp(endDatetime),
+		Limit:         limit,
+		Offset:        offset,
 	})
 
 	return r.GetRecords(), err

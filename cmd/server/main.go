@@ -60,10 +60,9 @@ func (*server) ReturnRecord(_ context.Context, req *pb.ReadRecordReq) (*pb.ReadR
 // ReturnRecords implements the function for reading and returning multiple Records from the db.
 // Optionally can be given a timerange in the RFC3339 format.
 func (*server) ReturnRecords(_ context.Context, req *pb.ReadRecordsReq) (*pb.ReadRecordsResp, error) {
-	records, err := dbAPI.ReturnRecords(req.StartDatetime, req.EndDatetime)
+	records, err := dbAPI.ReturnRecords(req.StartDatetime, req.EndDatetime, req.Limit, req.Offset)
 	if err != nil {
-		log.Error(err)
-		return nil, errors.New("no records found")
+		return nil, err
 	}
 	return &pb.ReadRecordsResp{
 		Records: records,

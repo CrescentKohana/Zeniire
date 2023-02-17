@@ -12,13 +12,9 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"strconv"
 	"time"
 )
-
-type ReturnRecordsForm struct {
-	StartDatetime string
-	EndDatetime   string
-}
 
 type NewRecordForm struct {
 	Amount   int64
@@ -60,13 +56,18 @@ func getRecord(w http.ResponseWriter, r *http.Request) {
 }
 
 func getRecords(w http.ResponseWriter, r *http.Request) {
-	formData := &ReturnRecordsForm{}
-	if err := json.NewDecoder(r.Body).Decode(formData); err != nil {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
+	startDatetime := r.URL.Query().Get("startDatetime")
+	endDatetime := r.URL.Query().Get("endDatetime")
+	limit, err := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 64)
+	if err != nil {
+		limit = 1000
+	}
+	offset, err := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 64)
+	if err != nil {
+		offset = 0
 	}
 
-	records, err := grpcAPI.ReturnRecords(formData.StartDatetime, formData.EndDatetime)
+	records, err := grpcAPI.ReturnRecords(startDatetime, endDatetime, limit, offset)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, http.StatusText(422), 422)

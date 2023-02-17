@@ -2,18 +2,24 @@ package db
 
 import (
 	"context"
+	"github.com/CrescentKohana/Zeniire/pkg/utility"
 	pb "github.com/CrescentKohana/Zeniire/proto/gen/go/zeniire"
 	"github.com/jackc/pgx/v5"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"math"
 	"time"
 )
 
-func (c *API) ReturnRecords(startDatetime *timestamppb.Timestamp, endDatetime *timestamppb.Timestamp) ([]*pb.Record, error) {
+func (c *API) ReturnRecords(startDatetime *timestamppb.Timestamp, endDatetime *timestamppb.Timestamp, limit int64, offset int64) ([]*pb.Record, error) {
+
+	limit = utility.Clamp(limit, 1, 1000)
+	offset = utility.Clamp(offset, 0, math.MaxInt64)
+
 	var rows pgx.Rows
 	if startDatetime == nil && endDatetime == nil {
 		var err error
-		rows, err = c.Db.Query(context.Background(), "SELECT * FROM records")
+		rows, err = c.Db.Query(context.Background(), "SELECT * FROM records LIMIT $1 OFFSET $2", limit, offset)
 		if err != nil {
 			log.Error(err)
 			return nil, err
@@ -31,9 +37,11 @@ func (c *API) ReturnRecords(startDatetime *timestamppb.Timestamp, endDatetime *t
 		var err error
 		rows, err = c.Db.Query(
 			context.Background(),
-			"SELECT * FROM records WHERE datetime >= $1 AND datetime < $2",
+			"SELECT * FROM records WHERE datetime >= $1 AND datetime < $2  LIMIT $3 OFFSET $4",
 			startDatetime.AsTime(),
 			endDatetime.AsTime(),
+			limit,
+			offset,
 		)
 
 		if err != nil {

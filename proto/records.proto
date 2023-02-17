@@ -49,6 +49,8 @@ message ReadRecordResp {
 message ReadRecordsReq {
   google.protobuf.Timestamp startDatetime = 1;
   google.protobuf.Timestamp endDatetime = 2;
+  int64 limit = 3;
+  int64 offset = 4;
 }
 
 // Response to list the collection of Records for a given timerange
