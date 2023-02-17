@@ -17,6 +17,11 @@ Use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) when 
 - Copy `docs/docker-compose.yml` to the root of the project `./` and modify it to your needs
 - Run `docker-compose up`
 
+### Generating code from Protocol Buffers
+- Install requirements for protobufs
+- Run `protoc --go_out=proto/gen/go/zeniire --go_opt=paths=source_relative --go-grpc_out=proto/gen/go/zeniire --go-grpc_opt=paths=source_relative proto/records.proto
+  `
+
 ### 💾 Database migrations
 - Automatically runs when the server is launched. Can be disabled by setting `ZNRE_DB_MIGRATIONS=false` in `.env`.
 
