@@ -1,9 +1,9 @@
 # IDE, editors
-/.idea/
-/Zeniire.iml
+./.idea/
+./Zeniire.iml
 
 # data
-/.env
+./.env
 
 # testing
 test.http
