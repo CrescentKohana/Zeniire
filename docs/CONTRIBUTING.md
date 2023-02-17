@@ -14,7 +14,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) when 
 - Run `server` (`server.exe` on Windows) and client `client` (`client.exe` on Windows)
 
 #### Docker
-- Modify docker-compose.yml to your needs
+- Copy `docs/docker-compose.yml` to the root of the project `./` and modify it to your needs
 - Run `docker-compose up`
 
 ### 💾 Database migrations
