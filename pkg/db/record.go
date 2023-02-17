@@ -9,26 +9,37 @@ import (
 	"time"
 )
 
-func ReturnRecords(startdateime *timestamppb.Timestamp, enddatetime *timestamppb.Timestamp) ([]*pb.Record, error) {
+func (c *API) ReturnRecords(startDatetime *timestamppb.Timestamp, endDatetime *timestamppb.Timestamp) ([]*pb.Record, error) {
 	var rows pgx.Rows
-	if startdateime == nil && enddatetime == nil {
-		rows, _ = conn.Query(context.Background(), "SELECT * FROM records")
+	if startDatetime == nil && endDatetime == nil {
+		var err error
+		rows, err = c.Db.Query(context.Background(), "SELECT * FROM records")
+		if err != nil {
+			log.Error(err)
+			return nil, err
+		}
 	} else {
-		if startdateime == nil {
-			startdateime = timestamppb.New(time.Unix(0, 0))
+		if startDatetime == nil {
+			startDatetime = timestamppb.New(time.Unix(0, 0))
 		}
-		if enddatetime == nil {
-			startdateime = timestamppb.Now()
+		if endDatetime == nil {
+			endDatetime = timestamppb.Now()
 		}
-		log.Info(startdateime.AsTime())
+
 		// BETWEEN should not be used as it will include results where the timestamp is exactly 2023-01-01 00:00:00.000000,
 		// but not timestamps later in that same day.
-		rows, _ = conn.Query(
+		var err error
+		rows, err = c.Db.Query(
 			context.Background(),
 			"SELECT * FROM records WHERE datetime >= $1 AND datetime < $2",
-			startdateime.AsTime(),
-			enddatetime.AsTime(),
+			startDatetime.AsTime(),
+			endDatetime.AsTime(),
 		)
+
+		if err != nil {
+			log.Error(err)
+			return nil, err
+		}
 	}
 
 	var records []*pb.Record
@@ -51,13 +62,13 @@ func ReturnRecords(startdateime *timestamppb.Timestamp, enddatetime *timestamppb
 	return records, rows.Err()
 }
 
-func ReturnRecord(id string) (*pb.Record, error) {
+func (c *API) ReturnRecord(id string) (*pb.Record, error) {
 	var uuid string
 	var amount int64
 	var datetime time.Time
 
-	err := conn.
-		QueryRow(context.Background(), "select uuid, amount, datetime from records where uuid=$1", id).
+	err := c.Db.
+		QueryRow(context.Background(), "SELECT uuid, amount, datetime FROM records WHERE uuid=$1", id).
 		Scan(&uuid, &amount, &datetime)
 
 	return &pb.Record{
@@ -67,10 +78,10 @@ func ReturnRecord(id string) (*pb.Record, error) {
 	}, err
 }
 
-func CreateRecord(data *pb.Record) error {
-	_, err := conn.Exec(
+func (c *API) CreateRecord(data *pb.Record) error {
+	_, err := c.Db.Exec(
 		context.Background(),
-		"insert into records(uuid, amount, datetime) values($1, $2, $3)", data.Uuid, data.Amount, data.Datetime.AsTime(),
+		"INSERT INTO records(uuid, amount, datetime) VALUES($1, $2, $3)", data.Uuid, data.Amount, data.Datetime.AsTime(),
 	)
 	return err
 }

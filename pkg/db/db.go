@@ -6,28 +6,30 @@ import (
 	"embed"
 	"github.com/CrescentKohana/Zeniire/internal/config"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 	log "github.com/sirupsen/logrus"
 )
 
-var conn *pgx.Conn
+type PgxIface interface {
+	Begin(context.Context) (pgx.Tx, error)
+	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
+	QueryRow(context.Context, string, ...interface{}) pgx.Row
+	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
+	Ping(context.Context) error
+	Prepare(context.Context, string, string) (*pgconn.StatementDescription, error)
+	Close(context.Context) error
+}
+
+type API struct {
+	Db PgxIface
+}
 
 // Includes the migrations into the build.
 //
 //go:embed migrations
 var embedMigrations embed.FS
-
-// Initdb initializes the database.
-func Initdb() {
-	var connErr error
-	conn, connErr = pgx.Connect(context.Background(), config.Options.DB.Address)
-
-	// If the database connection was unsuccessful, exit the application with an error.
-	if connErr != nil {
-		log.Fatal(connErr)
-	}
-}
 
 // EnsureLatestVersion ensures that the database is at the latest version by running all migrations.
 func EnsureLatestVersion() {
