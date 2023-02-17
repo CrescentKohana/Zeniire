@@ -11,8 +11,7 @@ func TestStringToTimestampWithValidFormat(t *testing.T) {
 	gotTimestamp := StringToTimestamp(datetime)
 
 	if wantTimestamp.Seconds == gotTimestamp.Seconds && wantTimestamp.Nanos == gotTimestamp.Nanos {
-		t.Error("parsed valid timestamp didn't match the expected timestamp")
-		return
+		t.Fatal("parsed valid timestamp didn't match the expected timestamp")
 	}
 }
 
@@ -21,8 +20,7 @@ func TestStringToTimestampWithInvalidFormat(t *testing.T) {
 	gotTimestamp := StringToTimestamp(datetime)
 
 	if gotTimestamp != nil {
-		t.Error("parsed invalid timestamp wasn't nil as it should have been")
-		return
+		t.Fatal("parsed invalid timestamp wasn't nil as it should have been")
 	}
 }
 
@@ -31,7 +29,15 @@ func TestStringToTimestampWithInvalidTime(t *testing.T) {
 	gotTimestamp := StringToTimestamp(datetime)
 
 	if gotTimestamp != nil {
-		t.Error("parsed timestamp with invalid time wasn't nil as it should have been")
-		return
+		t.Fatal("parsed timestamp with invalid time wasn't nil as it should have been")
+	}
+}
+
+func TestClamp(t *testing.T) {
+	wantNumber := int64(500)
+	gotNumber := Clamp(1000, 0, 500)
+
+	if wantNumber != gotNumber {
+		t.Fatal("the output of clamp function did not math the expected")
 	}
 }
