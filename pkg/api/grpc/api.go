@@ -30,8 +30,8 @@ func ReturnRecords(startDatetime string, endDatetime string) ([]*pb.Record, erro
 	defer cancel()
 
 	r, err := client.ReturnRecords(ctx, &pb.ReadRecordsReq{
-		EndDatetime:   utility.StringToTimestamp(startDatetime),
-		StartDatetime: utility.StringToTimestamp(endDatetime),
+		StartDatetime: utility.StringToTimestamp(startDatetime),
+		EndDatetime:   utility.StringToTimestamp(endDatetime),
 	})
 
 	return r.GetRecords(), err
