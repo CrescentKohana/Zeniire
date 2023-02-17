@@ -3,14 +3,24 @@
 
 > A high performance server application for keeping track of a coin wallet balance. REST and gRPC APIs included. Written in Go utilizing Protocol Buffers.
 > The name, **Zeniire**, comes from the old Japanese word (銭入れ) for "purse".
+> Also this is a practice project.
 
 ### **[📰 CHANGELOG](docs/CHANGELOG.md)** | **[❤ CONTRIBUTING](docs/CONTRIBUTING.md)**
 
 ## 📌 Features
 - Create new records of wallet balance either through gRPC or REST API.
 - Read the records of the wallet by specifing a datetime range.
+- Automatic deployment with docker-compose
+- Database migrations
+- TLS for gRPC
 
-## Benchmarks
+## 📝 TODO
+
+- Proper user authentication system (e.g. with JWT)
+- More testing
+- Automatic benchmarks
+
+## 💨 Benchmarks
 
 ### Instructions
 
@@ -54,9 +64,3 @@ Fastest Request:        0s
 Slowest Request:        299.4244ms
 Number of Errors:       0
 ```
-
-### TODO
-
-- Proper user authentication system (e.g. with JWT)
-- More testing
-- Automatic benchmarks
