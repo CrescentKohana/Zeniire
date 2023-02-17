@@ -56,7 +56,7 @@ func getRecord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(fmt.Sprintf("record: %s", record.Datetime)))
+	resultToJSON(w, record)
 }
 
 func getRecords(w http.ResponseWriter, r *http.Request) {
@@ -73,7 +73,7 @@ func getRecords(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(fmt.Sprintf("records: %s", records)))
+	resultToJSON(w, records)
 }
 
 func createRecord(w http.ResponseWriter, r *http.Request) {
@@ -139,6 +139,7 @@ func InitRESTClient() {
 		})
 	})
 
+	log.Info("Starting REST API on: ", config.Options.RESTAddr)
 	if err := http.ListenAndServe(config.Options.RESTAddr, r); err != nil {
 		log.Error(err)
 		return
