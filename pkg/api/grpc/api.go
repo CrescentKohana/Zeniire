@@ -2,11 +2,13 @@ package grpcAPI
 
 import (
 	"context"
+	"github.com/CrescentKohana/Zeniire/internal/auth"
 	"github.com/CrescentKohana/Zeniire/internal/config"
 	"github.com/CrescentKohana/Zeniire/pkg/utility"
 	pb "github.com/CrescentKohana/Zeniire/proto/gen/go/zeniire"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
@@ -48,14 +50,24 @@ func CreateRecord(amount int64, datetime *timestamppb.Timestamp) (*pb.Record, er
 }
 
 func InitGRPCClient() {
-	var err error
-	conn, err = grpc.Dial(
-		config.Options.GRPC.Host+":"+config.Options.GRPC.Port,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	var connErr error
+	var tlsCredentials credentials.TransportCredentials
+	if config.Options.GRPC.TLS {
+		var err error
+		tlsCredentials, err = auth.LoadClientTLSCredentials()
+		if err != nil {
+			log.Fatal("could not load TLS credentials: ", err)
+		}
+	} else {
+		tlsCredentials = insecure.NewCredentials()
+	}
 
-	if err != nil {
-		log.Fatalf("could not connect to gRPC server: %v", err)
+	conn, connErr = grpc.Dial(
+		config.Options.GRPC.Host+":"+config.Options.GRPC.Port,
+		grpc.WithTransportCredentials(tlsCredentials),
+	)
+	if connErr != nil {
+		log.Fatal("could not dial the gRPC server: ", connErr)
 	}
 
 	// defer conn.Close()

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"github.com/CrescentKohana/Zeniire/internal/auth"
 	"github.com/CrescentKohana/Zeniire/internal/config"
 	"github.com/CrescentKohana/Zeniire/pkg/db"
 	"github.com/google/uuid"
@@ -68,8 +69,16 @@ func (*server) ReturnRecords(_ context.Context, req *pb.ReadRecordsReq) (*pb.Rea
 
 // main launches the server while loading environmentals, initializing the DB and migrations.
 func main() {
+	// Load environmentals
 	config.LoadEnv()
-	db.Initdb()
+
+	// Initialize database (PostgreSQL or mock)
+	conn, connErr := pgx.Connect(context.Background(), config.Options.DB.Address)
+	if connErr != nil {
+		// If the database connection was unsuccessful, exit the application with an error.
+		log.Fatal(connErr)
+	}
+	dbAPI = db.API{Db: conn}
 	db.EnsureLatestVersion()
 
 	flag.Parse()
@@ -77,9 +86,20 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	s := grpc.NewServer()
+
+	var s *grpc.Server
+	if config.Options.GRPC.TLS {
+		tlsCredentials, err := auth.LoadServerTLSCredentials()
+		if err != nil {
+			log.Fatal("could not load TLS credentials: ", err)
+		}
+		s = grpc.NewServer(grpc.Creds(tlsCredentials))
+	} else {
+		s = grpc.NewServer()
+	}
+
 	pb.RegisterRecordsServer(s, &server{})
-	log.Printf("server listening at %v", lis.Addr())
+	log.Info("Zeniire server listening at ", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
