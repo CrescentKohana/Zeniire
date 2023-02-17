@@ -1,0 +1,73 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=zeniire
+    ports:
+      - '5432:5432'
+    expose:
+      - '5432'
+    volumes:
+      - db:/var/lib/postgresql/data
+  znre_server:
+    container_name: ZeniireServer
+    build:
+      context: ./
+      dockerfile: Dockerfile_server
+    depends_on:
+      - db
+    expose:
+      - '50051'
+    ports:
+      - '50051:50051'
+    environment:
+      ZNRE_DB_MIGRATIONS: 'true'
+      ZNRE_DB_NAME: zeniire
+      ZNRE_DB_HOST: db
+      ZNRE_DB_PORT: 5432
+      ZNRE_DB_USER: postgres
+      ZNRE_DB_PW: postgres
+      ZNRE_GRPC_HOST: znre_server
+      ZNRE_GRPC_PORT: 50051
+      ZNRE_CERTS_PATH: /home/zeniire/app/certs
+      ZNRE_GRPC_TLS: 'false'
+      ZNRE_REST_HOST: znre_client
+      ZNRE_REST_PORT: 3333
+    links:
+      - db
+    volumes:
+      - ./certs:/home/zeniire/app/certs
+  znre_client:
+    container_name: ZeniireClient
+    build:
+      context: ./
+      dockerfile: Dockerfile_client
+    depends_on:
+      - znre_server
+    expose:
+      - '3333'
+    ports:
+      - '3333:3333'
+    environment:
+      ZNRE_DB_MIGRATIONS: 'true'
+      ZNRE_DB_NAME: zeniire
+      ZNRE_DB_HOST: db
+      ZNRE_DB_PORT: 5432
+      ZNRE_DB_USER: postgres
+      ZNRE_DB_PW: postgres
+      ZNRE_GRPC_HOST: znre_server
+      ZNRE_GRPC_PORT: 50051
+      ZNRE_CERTS_PATH: /home/zeniire/app/certs
+      ZNRE_REST_HOST: znre_client
+      ZNRE_REST_PORT: 3333
+    links:
+      - znre_server
+    volumes:
+      - ./certs:/home/zeniire/app/certs
+volumes:
+  db:
+    driver: local

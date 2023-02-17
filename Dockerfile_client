@@ -1,0 +1,20 @@
+FROM golang:1.20-alpine as build
+
+RUN mkdir /usr/app/
+WORKDIR /usr/app/
+COPY . .
+
+RUN apk add build-base && go test -buildvcs=false ./...
+
+RUN GOOS=linux GOARCH=amd64 go build -buildvcs=false -ldflags="-w -s" -o /go/bin/zeniire-client github.com/CrescentKohana/Zeniire/cmd/client
+
+FROM alpine
+
+RUN adduser -D zeniire && mkdir /home/zeniire/app && mkdir /home/zeniire/data
+USER zeniire
+WORKDIR /home/zeniire/app
+
+COPY --from=build /go/bin/zeniire-client /home/zeniire/app/zeniire-client
+
+EXPOSE 3333
+CMD [ "sh", "-c", "/home/zeniire/app/zeniire-client" ]
