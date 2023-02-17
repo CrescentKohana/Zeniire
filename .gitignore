@@ -8,3 +8,17 @@
 # testing
 test.http
 coverage.out
+
+# certificates
+./certs/ca-cert.pem
+./certs/ca-cert.srl
+./certs/ca-key.pem
+./certs/*-key.pem
+./certs/*-req.pem
+./certs/*-cert.pem
+
+# build
+./server
+./client
+./client.exe
+./server.exe
