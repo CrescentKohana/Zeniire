@@ -8,6 +8,7 @@ import (
 	"github.com/CrescentKohana/Zeniire/internal/config"
 	"github.com/CrescentKohana/Zeniire/pkg/db"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	log "github.com/sirupsen/logrus"
 	"net"
 
@@ -19,6 +20,8 @@ import (
 type server struct {
 	pb.UnimplementedRecordsServer
 }
+
+var dbAPI db.API
 
 // CreateRecord implements the function for creating and storing Records to the db.
 func (*server) CreateRecord(_ context.Context, req *pb.CreateRecordReq) (*pb.CreateRecordResp, error) {
@@ -32,7 +35,7 @@ func (*server) CreateRecord(_ context.Context, req *pb.CreateRecordReq) (*pb.Cre
 		Datetime: datetime,
 	}
 
-	if err := db.CreateRecord(&data); err != nil {
+	if err := dbAPI.CreateRecord(&data); err != nil {
 		log.Error(err)
 		return nil, errors.New("record creation unsuccessful")
 	}
@@ -44,7 +47,7 @@ func (*server) CreateRecord(_ context.Context, req *pb.CreateRecordReq) (*pb.Cre
 
 // ReturnRecord implements the function for reading and returning singular Records from the db.
 func (*server) ReturnRecord(_ context.Context, req *pb.ReadRecordReq) (*pb.ReadRecordResp, error) {
-	record, err := db.ReturnRecord(req.GetRecordUuid())
+	record, err := dbAPI.ReturnRecord(req.GetRecordUuid())
 
 	if err != nil {
 		return nil, errors.New("record not found")
@@ -57,7 +60,7 @@ func (*server) ReturnRecord(_ context.Context, req *pb.ReadRecordReq) (*pb.ReadR
 // ReturnRecords implements the function for reading and returning multiple Records from the db.
 // Optionally can be given a timerange in the RFC3339 format.
 func (*server) ReturnRecords(_ context.Context, req *pb.ReadRecordsReq) (*pb.ReadRecordsResp, error) {
-	records, err := db.ReturnRecords(req.StartDatetime, req.EndDatetime)
+	records, err := dbAPI.ReturnRecords(req.StartDatetime, req.EndDatetime)
 	if err != nil {
 		log.Error(err)
 		return nil, errors.New("no records found")
